@@ -1,0 +1,5 @@
+{ mkYarnPackage }:
+
+mkYarnPackage {
+  src = ./.;
+}
