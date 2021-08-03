@@ -18,7 +18,7 @@ in nodePackages // {
       export PATH="${nodeDependencies}/bin:$PATH"
   
       # Build the distribution bundle in "dist"
-      webpack
+      npm build
       cp -r dist $out/
     '';
   };
