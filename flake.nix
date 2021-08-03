@@ -1,5 +1,5 @@
 {
-  description = "package description goes here";
+  description = "🥝 Next generation of the Kiwi IRC web client";
 
   inputs.utils.url = "github:kreisys/flake-utils";
   inputs.yarn2nix.url = "github:input-output-hk/yarn2nix";
@@ -11,14 +11,14 @@
         systems = [ "x86_64-linux" "x86_64-darwin" ];
         preOverlays = [ yarn2nix ];
         overlay = final: prev: {
-          package-name = final.callPackage ./package.nix { };
+          kiwiirc = final.callPackage ./package.nix { };
         };
 
-        packages = { package-name }: {
-          inherit package-name;
-          defaultPackage = package-name;
+        packages = { kiwiirc }: {
+          inherit kiwiirc;
+          defaultPackage = kiwiirc;
         };
 
-        hydraJobs = { package-name }@jobs: jobs;
+        hydraJobs = { kiwiirc }@jobs: jobs;
       };
 }

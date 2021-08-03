@@ -2,4 +2,5 @@
 
 mkYarnPackage {
   src = ./.;
+  pname = "kiwiirc";
 }
