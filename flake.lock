@@ -2,16 +2,18 @@
   "nodes": {
     "nixpkgs": {
       "locked": {
-        "lastModified": 1627942574,
-        "narHash": "sha256-guUcGRWvY2mfiVSet2x/zeHIyflm2wgglj0ldg0mMio=",
+        "lastModified": 1627892869,
+        "narHash": "sha256-Fg0KPi9oGTZ7Ju7rb8foq0GOZI3++ZaF6wf10ClMA58=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "c464dc811babfe316ed4ab7bbc12351122e69dd7",
+        "rev": "d4590d21006387dcb190c516724cb1e41c0f8fdf",
         "type": "github"
       },
       "original": {
-        "id": "nixpkgs",
-        "type": "indirect"
+        "owner": "NixOS",
+        "ref": "nixos-21.05",
+        "repo": "nixpkgs",
+        "type": "github"
       }
     },
     "nixpkgs_2": {
@@ -31,26 +33,10 @@
     "root": {
       "inputs": {
         "nixpkgs": "nixpkgs",
-        "utils": "utils",
         "yarn2nix": "yarn2nix"
       }
     },
     "utils": {
-      "locked": {
-        "lastModified": 1627654666,
-        "narHash": "sha256-J+kz3AmVE+e+dHuM6Kazpq8toOYSunjpC7NM7BRmDNI=",
-        "owner": "kreisys",
-        "repo": "flake-utils",
-        "rev": "b9f0f170e3ea95d2c3de73245fe7f35efa5a99c3",
-        "type": "github"
-      },
-      "original": {
-        "owner": "kreisys",
-        "repo": "flake-utils",
-        "type": "github"
-      }
-    },
-    "utils_2": {
       "locked": {
         "lastModified": 1619630495,
         "narHash": "sha256-hbTvtHDY7sYTb8Yj+/eqJFybOhN31edbv5o2xeLwl+g=",
@@ -68,7 +54,7 @@
     "yarn2nix": {
       "inputs": {
         "nixpkgs": "nixpkgs_2",
-        "utils": "utils_2"
+        "utils": "utils"
       },
       "locked": {
         "lastModified": 1619635816,
