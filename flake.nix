@@ -1,24 +1,31 @@
 {
   description = "🥝 Next generation of the Kiwi IRC web client";
 
-  inputs.utils.url = "github:kreisys/flake-utils";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-21.05";
   inputs.yarn2nix.url = "github:input-output-hk/yarn2nix";
 
-  outputs = { self, nixpkgs, yarn2nix, utils }:
-    utils.lib.simpleFlake
-      {
-        inherit nixpkgs;
-        systems = [ "x86_64-linux" "x86_64-darwin" ];
-        preOverlays = [ yarn2nix ];
-        overlay = final: prev: {
-          kiwiirc = final.callPackage ./package.nix { };
-        };
+  outputs = { self, nixpkgs, yarn2nix }:
+    let
+      # System types to support.
+      supportedSystems = [ "x86_64-linux" "x86_64-darwin" "aarch64-linux" "aarch64-darwin" ];
 
-        packages = { kiwiirc }: {
-          inherit kiwiirc;
-          defaultPackage = kiwiirc;
-        };
+      # Helper function to generate an attrset '{ x86_64-linux = f "x86_64-linux"; ... }'.
+      forAllSystems = f: nixpkgs.lib.genAttrs supportedSystems (system: f system);
 
-        hydraJobs = { kiwiirc }@jobs: jobs;
+      # Nixpkgs instantiated for supported system types.
+      nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; overlays = [ self.overlay yarn2nix.overlay ]; });
+    in {
+      overlay = final: prev: {
+        kiwiirc = final.callPackage ./package.nix { };
       };
+
+      packages = forAllSystems (system:
+        {
+          inherit (nixpkgsFor.${system}) kiwiirc;
+        });
+
+      defaultPackage = forAllSystems (system: self.packages.${system}.kiwiirc);
+
+      hydraJobs.kiwiirc = self.defaultPackage;
+    };
 }
