@@ -2,8 +2,12 @@
   description = "🥝 Next generation of the Kiwi IRC web client";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-21.05";
+  inputs.webircgateway = {
+    url = "github:kiwiirc/webircgateway";
+    flake = false;
+  };
 
-  outputs = { self, nixpkgs }:
+  outputs = { self, nixpkgs, webircgateway }:
     let
       # System types to support.
       supportedSystems = [ "x86_64-linux" "x86_64-darwin" "aarch64-linux" "aarch64-darwin" ];
@@ -30,11 +34,19 @@
             rm -rf $out/tarballs $out/libexec $out/bin
           '';
         };
+        webircgateway = final.buildGoModule rec {
+          src = webircgateway;
+          name = "webircgateway";
+          pname = "webircgateway";
+          vendorSha256 = "sha256-CzA99tijUdmi46x9hV8bKR9uVK1HivG/QpciXwpstlU=";
+          subPackages = [ "." ];
+          runVend = true;
+        };
       };
 
       packages = forAllSystems (system:
         {
-          inherit (nixpkgsFor.${system}) kiwiirc;
+          inherit (nixpkgsFor.${system}) kiwiirc webircgateway;
         });
 
       defaultPackage = forAllSystems (system: self.packages.${system}.kiwiirc);
