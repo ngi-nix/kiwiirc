@@ -2,9 +2,8 @@
   description = "🥝 Next generation of the Kiwi IRC web client";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-21.05";
-  inputs.yarn2nix.url = "github:input-output-hk/yarn2nix";
 
-  outputs = { self, nixpkgs, yarn2nix }:
+  outputs = { self, nixpkgs }:
     let
       # System types to support.
       supportedSystems = [ "x86_64-linux" "x86_64-darwin" "aarch64-linux" "aarch64-darwin" ];
@@ -13,7 +12,7 @@
       forAllSystems = f: nixpkgs.lib.genAttrs supportedSystems (system: f system);
 
       # Nixpkgs instantiated for supported system types.
-      nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; overlays = [ self.overlay yarn2nix.overlay ]; });
+      nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; overlays = [ self.overlay ]; });
     in {
       overlay = final: prev: {
         kiwiirc = final.mkYarnPackage rec {
