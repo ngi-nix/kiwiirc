@@ -18,7 +18,24 @@
     },
     "root": {
       "inputs": {
-        "nixpkgs": "nixpkgs"
+        "nixpkgs": "nixpkgs",
+        "webircgateway": "webircgateway"
+      }
+    },
+    "webircgateway": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1616874963,
+        "narHash": "sha256-xgjx7Wgtz0HMsduagEhffDK+mWuzb3rDx7nHHWox2Dg=",
+        "owner": "kiwiirc",
+        "repo": "webircgateway",
+        "rev": "f66bb6235964ba0291d7982cbad360400a4e566d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "kiwiirc",
+        "repo": "webircgateway",
+        "type": "github"
       }
     }
   },
