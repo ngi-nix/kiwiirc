@@ -51,6 +51,63 @@
 
       defaultPackage = forAllSystems (system: self.packages.${system}.kiwiirc);
 
+      nixosModules.kiwiirc =
+        { pkgs, lib, config, ... }:
+          with lib;
+        {
+          options.services.kiwiirc = {
+            enable = mkEnableOption "Serve the KiwiIRC webpage";
+          };
+          config = mkIf config.services.kiwiirc.enable {
+            nixpkgs.overlays = [ self.overlay ];
+            systemd.services.kiwiirc = {
+              description = "The KiwiIRC Service";
+              wantedBy = [ "multi-user.target" ];
+              after = [ "networking.target" ];
+              serviceConfig = {
+                DynamicUser = true;
+                ExecStart = "${pkgs.python3}/bin/python -m http.server 8000 -d ${pkgs.kiwiirc}/www/kiwiirc";
+                PrivateTmp = true;
+                Restart = "always";
+              };
+            };
+          };
+        };
+
+      checks = forAllSystems
+        (system:
+          with nixpkgsFor.${system};
+          lib.optionalAttrs stdenv.isLinux {
+            # A VM test of the NixOS module.
+            vmTest =
+              with import (nixpkgs + "/nixos/lib/testing-python.nix") {
+                inherit system;
+              };
+
+              makeTest {
+                nodes = {
+                  client = { config, pkgs, ... }: {
+                    environment.systemPackages = [ pkgs.curl ];
+                  };
+                  kiwiirc = { config, pkgs, ... }: {
+                    imports = [ self.nixosModules.kiwiirc ];
+                    services.kiwiirc.enable = true;
+                    networking.firewall.enable = false;
+                  };
+                };
+
+                testScript =
+                  ''
+                    start_all()
+                    client.wait_for_unit("multi-user.target")
+                    kiwiirc.wait_for_unit("kiwiirc.service")
+                    kiwiirc.wait_for_open_port("8000")
+                    client.succeed("curl -sSf http:/kiwiirc:8000/static/config.json")
+                  '';
+              };
+          }
+        );
+
       hydraJobs.kiwiirc = self.defaultPackage;
     };
 }
