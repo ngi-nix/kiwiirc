@@ -45,6 +45,9 @@
           in final.mkYarnPackage {
             name = "kiwiirc-desktop";
             src = kiwiirc-desktop;
+            patches = (
+                ./remove-dev-mode.patch
+            );
             nativeBuildInputs = [ final.makeWrapper ];
             installPhase = ''
               # resources

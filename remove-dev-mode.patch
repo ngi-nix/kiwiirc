@@ -1,0 +1,15 @@
+diff --git a/src/index.js b/src/index.js
+index 1ac9c27..d5cbb79 100644
+--- a/src/index.js
++++ b/src/index.js
+@@ -141,10 +141,4 @@ app.on('activate', async () => {
+             app.quit();
+         });
+     }
+-
+-    if (process.defaultApp) {
+-        // Running in dev mode
+-        mainWindow.webContents.openDevTools();
+-    }
+ })();
+--
