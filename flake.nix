@@ -45,9 +45,22 @@
           in final.mkYarnPackage {
             name = "kiwiirc-desktop";
             src = kiwiirc-desktop;
-            patches = (
-                ./remove-dev-mode.patch
-            );
+            patches = ((final.writeText "remove-dev-mode.patch" ''
+              diff --git a/src/index.js b/src/index.js
+              index 1ac9c27..d5cbb79 100644
+              --- a/src/index.js
+              +++ b/src/index.js
+              @@ -141,9 +141,4 @@ app.on('activate', async () => {
+                           app.quit();
+                       });
+                   }
+              -
+              -    if (process.defaultApp) {
+              -        // Running in dev mode
+              -        mainWindow.webContents.openDevTools();
+              -    }
+               })();
+            ''));
             nativeBuildInputs = [ final.makeWrapper ];
             installPhase = ''
               # resources
