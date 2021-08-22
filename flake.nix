@@ -95,11 +95,43 @@
           subPackages = [ "." ];
           runVend = true;
         };
+        kiwiirc_distributeStatic = final.webircgateway.overrideAttrs (oldAttrs: rec {
+          dontCheck = true;
+          dontTest = true;
+          dontFixup = true;
+          buildPhase = ''
+            export CGO_ENABLED=0
+            cp -r ${final.kiwiirc}/www www
+            chmod -R u+w www
+            GOOS=darwin GOARCH=amd64 go build -o $TMP/kiwiirc_darwin
+            GOOS=linux GOARCH=386 go build -o $TMP/kiwiirc_linux_386
+            GOOS=linux GOARCH=amd64 go build -o $TMP/kiwiirc_linux_amd64
+            GOOS=linux GOARCH=riscv64 go build -o $TMP/kiwiirc_linux_riscv64
+            GOOS=linux GOARCH=arm GOARM=5 go build -o $TMP/kiwiirc_linux_armel
+            GOOS=linux GOARCH=arm GOARM=6 go build -o $TMP/kiwiirc_linux_armhf
+            GOOS=linux GOARCH=arm64 go build -o $TMP/kiwiirc_linux_arm64
+            GOOS=windows GOARCH=386 go build -o $TMP/kiwiirc_windows_386
+            GOOS=windows GOARCH=amd64 go build -o $TMP/kiwiirc_windows_amd64
+          '';
+          installPhase = ''
+            mkdir -p $out
+            export binaryPaths=$(ls $TMP/kiwiirc*)
+            for i in $binaryPaths
+            do
+              export binaryName=$(echo $i | xargs -n 1 basename)
+              mkdir $binaryName
+              ln -s $i $binaryName/kiwiirc
+              ln -s $PWD/www $binaryName/www
+              ln -s $PWD/config.conf.example $binaryName/config.conf.example
+              ${final.zip}/bin/zip -r $out/${final.lib.substring 0 8 webircgateway.rev}-$binaryName.zip $binaryName
+            done
+          '';
+         });
       };
 
       packages = forAllSystems (system:
         {
-          inherit (nixpkgsFor.${system}) kiwiirc kiwiirc-desktop webircgateway;
+          inherit (nixpkgsFor.${system}) kiwiirc kiwiirc-desktop webircgateway kiwiirc_distributeStatic;
         });
 
       defaultPackage = forAllSystems (system: self.packages.${system}.kiwiirc);
