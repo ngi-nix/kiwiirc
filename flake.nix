@@ -35,7 +35,7 @@
             '';
             preInstall = ''
               mkdir -p $out/www/${pname}
-              cp -r ./deps/${pname}/dist/* $out/www/${pname}
+              cp -r ./deps/${pname}/dist/* $out/www
             '';
             postFixup = ''
               rm -rf $out/tarballs $out/libexec $out/bin
@@ -74,7 +74,7 @@
 
               rm -r "$out/share/kiwiirc/electron/kiwiirc"
               mkdir -p  "$out/share/kiwiirc/electron/kiwiirc"
-              ln -s '${kiwiirc}/www/kiwiirc' "$out/share/kiwiirc/electron/kiwiirc/dist"
+              ln -s '${kiwiirc}/www' "$out/share/kiwiirc/electron/kiwiirc/dist"
 
               # executable wrapper
               makeWrapper '${final.electron}/bin/electron' "$out/bin/${executableName}" \
@@ -117,7 +117,7 @@
               after = [ "networking.target" ];
               serviceConfig = {
                 DynamicUser = true;
-                ExecStart = "${pkgs.python3}/bin/python -m http.server 8000 -d ${pkgs.kiwiirc}/www/kiwiirc";
+                ExecStart = "${pkgs.python3}/bin/python -m http.server 8000 -d ${pkgs.kiwiirc}/www";
                 PrivateTmp = true;
                 Restart = "always";
               };
