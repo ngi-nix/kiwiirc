@@ -37,7 +37,7 @@
               mkdir -p $out/www/${pname}
               cp -r ./deps/${pname}/dist/* $out/www
             '';
-            postFixup = ''
+            fixupPhase = ''
               rm -rf $out/tarballs $out/libexec $out/bin
               rm -rf $out/www/kiwiirc
             '';
