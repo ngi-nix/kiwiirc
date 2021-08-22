@@ -1,5 +1,21 @@
 {
   "nodes": {
+    "kiwiirc-desktop": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1614786156,
+        "narHash": "sha256-fPttrJ5OlnI0W/U8DR7dWSNlP7klNN26QVO9HpmWA/Q=",
+        "owner": "kiwiirc",
+        "repo": "kiwiirc-desktop",
+        "rev": "5680cf58d88325f3dc7f0c51b2d91120e973ccfd",
+        "type": "github"
+      },
+      "original": {
+        "owner": "kiwiirc",
+        "repo": "kiwiirc-desktop",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1627892869,
@@ -18,6 +34,7 @@
     },
     "root": {
       "inputs": {
+        "kiwiirc-desktop": "kiwiirc-desktop",
         "nixpkgs": "nixpkgs",
         "webircgateway": "webircgateway"
       }

@@ -6,8 +6,12 @@
     url = "github:kiwiirc/webircgateway";
     flake = false;
   };
+  inputs.kiwiirc-desktop = {
+    url = "github:kiwiirc/kiwiirc-desktop";
+    flake = false;
+  };
 
-  outputs = { self, nixpkgs, webircgateway }:
+  outputs = { self, nixpkgs, webircgateway, kiwiirc-desktop }:
     let
       # System types to support.
       supportedSystems = [ "x86_64-linux" "x86_64-darwin" "aarch64-linux" "aarch64-darwin" ];
@@ -18,22 +22,67 @@
       # Nixpkgs instantiated for supported system types.
       nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; overlays = [ self.overlay ]; });
     in {
-      overlay = final: prev: {
-        kiwiirc = final.mkYarnPackage rec {
-          src = ./.;
-          pname = "kiwiirc";
-          distPhase = "true";
-          buildPhase = ''
-            yarn --offline run build
-          '';
-          preInstall = ''
-            mkdir -p $out/www/${pname}
-            cp -r ./deps/${pname}/dist/* $out/www/${pname}
-          '';
-          postFixup = ''
-            rm -rf $out/tarballs $out/libexec $out/bin
-          '';
-        };
+      overlay = final: prev:
+        let
+          kiwiirc = final.mkYarnPackage rec {
+            src = ./.;
+            pname = "kiwiirc";
+            distPhase = "true";
+            buildPhase = ''
+              yarn --offline run build
+            '';
+            preInstall = ''
+              mkdir -p $out/www/${pname}
+              cp -r ./deps/${pname}/dist/* $out/www/${pname}
+            '';
+            postFixup = ''
+              rm -rf $out/tarballs $out/libexec $out/bin
+            '';
+          };
+        in {
+          inherit kiwiirc;
+          kiwiirc-desktop = let executableName = "kiwiirc-desktop";
+          in final.mkYarnPackage {
+            name = "kiwiirc-desktop";
+            src = kiwiirc-desktop;
+            patches = ((final.writeText "remove-dev-mode.patch" ''
+              diff --git a/src/index.js b/src/index.js
+              index 1ac9c27..d5cbb79 100644
+              --- a/src/index.js
+              +++ b/src/index.js
+              @@ -141,9 +141,4 @@ app.on('activate', async () => {
+                           app.quit();
+                       });
+                   }
+              -
+              -    if (process.defaultApp) {
+              -        // Running in dev mode
+              -        mainWindow.webContents.openDevTools();
+              -    }
+               })();
+            ''));
+            nativeBuildInputs = [ final.makeWrapper ];
+            installPhase = ''
+              # resources
+              mkdir -p "$out/share/kiwiirc"
+              cp -r './deps/kiwiirc-desktop' "$out/share/kiwiirc/electron"
+
+              rm "$out/share/kiwiirc/electron/node_modules"
+              cp -r './node_modules' "$out/share/kiwiirc/electron"
+
+              rm -r "$out/share/kiwiirc/electron/kiwiirc"
+              mkdir -p  "$out/share/kiwiirc/electron/kiwiirc"
+              ln -s '${kiwiirc}/www/kiwiirc' "$out/share/kiwiirc/electron/kiwiirc/dist"
+
+              # executable wrapper
+              makeWrapper '${final.electron}/bin/electron' "$out/bin/${executableName}" \
+                --add-flags "$out/share/kiwiirc/electron"
+            '';
+
+            distPhase = ''
+              true
+            '';
+          };
         webircgateway = final.buildGoModule rec {
           src = webircgateway;
           name = "webircgateway";
@@ -46,7 +95,7 @@
 
       packages = forAllSystems (system:
         {
-          inherit (nixpkgsFor.${system}) kiwiirc webircgateway;
+          inherit (nixpkgsFor.${system}) kiwiirc kiwiirc-desktop webircgateway;
         });
 
       defaultPackage = forAllSystems (system: self.packages.${system}.kiwiirc);
