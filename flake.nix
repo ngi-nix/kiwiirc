@@ -36,6 +36,7 @@
             preInstall = ''
               mkdir -p $out/www/${pname}
               cp -r ./deps/${pname}/dist/* $out/www
+              cp -r $src/LICENSE $out/www
             '';
             fixupPhase = ''
               rm -rf $out/tarballs $out/libexec $out/bin
