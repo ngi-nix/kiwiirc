@@ -28,10 +28,12 @@
           '';
           preInstall = ''
             mkdir -p $out/www/${pname}
-            cp -r ./deps/${pname}/dist/* $out/www/${pname}
+            cp -r ./deps/${pname}/dist/* $out/www
+            cp -r $src/LICENSE $out/www
           '';
-          postFixup = ''
+          fixupPhase = ''
             rm -rf $out/tarballs $out/libexec $out/bin
+            rm -rf $out/www/kiwiirc
           '';
         };
         webircgateway = final.buildGoModule rec {
@@ -42,11 +44,46 @@
           subPackages = [ "." ];
           runVend = true;
         };
+        kiwiirc_distributeStatic = final.webircgateway.overrideAttrs (oldAttrs: rec {
+          dontCheck = true;
+          dontInstall = true;
+          dontTest = true;
+          buildPhase = ''
+            mkdir $out
+            export CGO_ENABLED=0
+            env | grep GO
+
+            cp -r ${final.kiwiirc}/www ./www
+            chmod -R u+w www
+
+            GOOS=darwin GOARCH=amd64 go build -o $TMP/kiwiirc.darwin
+            GOOS=linux GOARCH=386 go build -o $TMP/kiwiirc.linux_386
+            GOOS=linux GOARCH=amd64 go build -o $TMP/kiwiirc.linux_amd64
+            GOOS=linux GOARCH=riscv64 go build -o $TMP/kiwiirc.linux_riscv64
+            GOOS=linux GOARCH=arm GOARM=5 go build -o $TMP/kiwiirc.linux_armel
+            GOOS=linux GOARCH=arm GOARM=6 go build -o $TMP/kiwiirc.linux_armhf
+            GOOS=linux GOARCH=arm64 go build -o $TMP/kiwiirc.linux_arm64
+            GOOS=windows GOARCH=386 go build -o $TMP/kiwiirc.windows_386
+            GOOS=windows GOARCH=amd64 go build -o $TMP/kiwiirc_windows_amd64
+
+            export binaryPaths=$(ls $TMP/kiwiirc*)
+
+            for i in $binaryPaths
+            do
+              export binaryName=$(echo $i | xargs -n 1 basename)
+              mkdir $binaryName
+              ln -s $i $binaryName/kiwiirc
+              ln -s $PWD/www $binaryName/www
+              ln -s $PWD/config.conf.example $binaryName/config.conf.example
+              ${final.zip}/bin/zip -r $out/${webircgateway.rev}-$binaryName.zip $binaryName
+            done
+          '';
+         });
       };
 
       packages = forAllSystems (system:
         {
-          inherit (nixpkgsFor.${system}) kiwiirc webircgateway;
+          inherit (nixpkgsFor.${system}) kiwiirc webircgateway kiwiirc_distributeStatic;
         });
 
       defaultPackage = forAllSystems (system: self.packages.${system}.kiwiirc);
