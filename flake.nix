@@ -1,4 +1,6 @@
 {
+  nixConfig.bash-prompt = "[nix-develop:]";
+
   description = "🥝 Next generation of the Kiwi IRC web client";
 
   inputs.nixpkgs.url = "github:NixOS/nixpkgs?ref=nixos-21.05";
