@@ -39,6 +39,7 @@
             '';
             postFixup = ''
               rm -rf $out/tarballs $out/libexec $out/bin
+              rm -rf $out/www/kiwiirc
             '';
           };
         in {
