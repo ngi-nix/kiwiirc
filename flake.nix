@@ -143,9 +143,9 @@
           options.services.kiwiirc = {
             enable = mkEnableOption "Serve the KiwiIRC webpage";
           };
-          config = mkIf config.services.kiwiirc.enable {
+          config = {
             nixpkgs.overlays = [ self.overlay ];
-            systemd.services.kiwiirc = {
+            systemd.services.kiwiirc = mkIf config.services.kiwiirc.enable {
               description = "The KiwiIRC Service";
               wantedBy = [ "multi-user.target" ];
               after = [ "networking.target" ];
