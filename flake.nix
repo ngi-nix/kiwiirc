@@ -25,8 +25,9 @@
       nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; overlays = [ self.overlay ]; });
     in {
       overlay = final: prev:
+        with final;
         let
-          kiwiirc = final.mkYarnPackage rec {
+          kiwiirc = mkYarnPackage rec {
             src = ./.;
             pname = "kiwiirc";
             distPhase = "true";
@@ -46,10 +47,10 @@
         in {
           inherit kiwiirc;
           kiwiirc-desktop = let executableName = "kiwiirc-desktop";
-          in final.mkYarnPackage {
+          in mkYarnPackage rec {
             name = "kiwiirc-desktop";
             src = kiwiirc-desktop;
-            patches = ((final.writeText "remove-dev-mode.patch" ''
+            patches = ((writeText "remove-dev-mode.patch" ''
               diff --git a/src/index.js b/src/index.js
               index 1ac9c27..d5cbb79 100644
               --- a/src/index.js
@@ -65,7 +66,7 @@
               -    }
                })();
             ''));
-            nativeBuildInputs = [ final.makeWrapper ];
+            nativeBuildInputs = [ makeWrapper ];
             installPhase = ''
               # resources
               mkdir -p "$out/share/kiwiirc"
@@ -78,14 +79,33 @@
               mkdir -p  "$out/share/kiwiirc/electron/kiwiirc"
               ln -s '${kiwiirc}/www' "$out/share/kiwiirc/electron/kiwiirc/dist"
 
+              # icons
+              for res in 128x128 256x256 512x512; do
+                mkdir -p "$out/share/icons/hicolor/$res/apps"
+                cp "./deps/kiwiirc-desktop/static/icons/kiwiirclogo_$res.png" "$out/share/icons/hicolor/$res/apps/kiwiirc.png"
+              done
+
+              # desktop item
+              mkdir -p "$out/share"
+              ln -s "${desktopItem}/share/applications" "$out/share/applications"
+
               # executable wrapper
-              makeWrapper '${final.electron}/bin/electron' "$out/bin/${executableName}" \
+              makeWrapper '${electron}/bin/electron' "$out/bin/${executableName}" \
                 --add-flags "$out/share/kiwiirc/electron"
             '';
 
             distPhase = ''
               true
             '';
+
+            desktopItem = makeDesktopItem {
+              name = "kiwiirc-desktop";
+              exec = "${executableName} %u";
+              icon = "kiwiirc";
+              desktopName = "Kiwiirc";
+              genericName = "Kiwiirc";
+              categories = "Network;InstantMessaging;Chat;";
+            };
           };
         webircgateway = final.buildGoModule rec {
           src = webircgateway;
@@ -143,9 +163,9 @@
           options.services.kiwiirc = {
             enable = mkEnableOption "Serve the KiwiIRC webpage";
           };
-          config = mkIf config.services.kiwiirc.enable {
+          config = {
             nixpkgs.overlays = [ self.overlay ];
-            systemd.services.kiwiirc = {
+            systemd.services.kiwiirc = mkIf config.services.kiwiirc.enable {
               description = "The KiwiIRC Service";
               wantedBy = [ "multi-user.target" ];
               after = [ "networking.target" ];
