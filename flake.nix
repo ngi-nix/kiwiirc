@@ -25,8 +25,7 @@
       nixpkgsFor = forAllSystems (system: import nixpkgs { inherit system; overlays = [ self.overlay ]; });
     in {
       overlay = final: prev:
-        with final;
-        let
+        with final; {
           kiwiirc = mkYarnPackage rec {
             src = ./.;
             pname = "kiwiirc";
@@ -44,8 +43,6 @@
               rm -rf $out/www/kiwiirc
             '';
           };
-        in {
-          inherit kiwiirc;
           kiwiirc-desktop = let executableName = "kiwiirc-desktop";
           in mkYarnPackage rec {
             name = "kiwiirc-desktop";
@@ -77,7 +74,7 @@
 
               rm -r "$out/share/kiwiirc/electron/kiwiirc"
               mkdir -p  "$out/share/kiwiirc/electron/kiwiirc"
-              ln -s '${kiwiirc}/www' "$out/share/kiwiirc/electron/kiwiirc/dist"
+              ln -s '${final.kiwiirc}/www' "$out/share/kiwiirc/electron/kiwiirc/dist"
 
               # icons
               for res in 128x128 256x256 512x512; do
@@ -107,46 +104,46 @@
               categories = "Network;InstantMessaging;Chat;";
             };
           };
-        webircgateway = final.buildGoModule rec {
-          src = webircgateway;
-          name = "webircgateway";
-          pname = "webircgateway";
-          vendorSha256 = "sha256-CzA99tijUdmi46x9hV8bKR9uVK1HivG/QpciXwpstlU=";
-          subPackages = [ "." ];
-          runVend = true;
-        };
-        kiwiirc_distributeStatic = final.webircgateway.overrideAttrs (oldAttrs: rec {
-          dontCheck = true;
-          dontTest = true;
-          dontFixup = true;
-          buildPhase = ''
-            export CGO_ENABLED=0
-            cp -r ${final.kiwiirc}/www www
-            chmod -R u+w www
-            GOOS=darwin GOARCH=amd64 go build -o $TMP/kiwiirc_darwin
-            GOOS=linux GOARCH=386 go build -o $TMP/kiwiirc_linux_386
-            GOOS=linux GOARCH=amd64 go build -o $TMP/kiwiirc_linux_amd64
-            GOOS=linux GOARCH=riscv64 go build -o $TMP/kiwiirc_linux_riscv64
-            GOOS=linux GOARCH=arm GOARM=5 go build -o $TMP/kiwiirc_linux_armel
-            GOOS=linux GOARCH=arm GOARM=6 go build -o $TMP/kiwiirc_linux_armhf
-            GOOS=linux GOARCH=arm64 go build -o $TMP/kiwiirc_linux_arm64
-            GOOS=windows GOARCH=386 go build -o $TMP/kiwiirc_windows_386
-            GOOS=windows GOARCH=amd64 go build -o $TMP/kiwiirc_windows_amd64
-          '';
-          installPhase = ''
-            mkdir -p $out
-            export binaryPaths=$(ls $TMP/kiwiirc*)
-            for i in $binaryPaths
-            do
-              export binaryName=$(echo $i | xargs -n 1 basename)
-              mkdir $binaryName
-              ln -s $i $binaryName/kiwiirc
-              ln -s $PWD/www $binaryName/www
-              ln -s $PWD/config.conf.example $binaryName/config.conf.example
-              ${final.zip}/bin/zip -r $out/${final.lib.substring 0 8 webircgateway.rev}-$binaryName.zip $binaryName
-            done
-          '';
-         });
+          webircgateway = final.buildGoModule rec {
+            src = webircgateway;
+            name = "webircgateway";
+            pname = "webircgateway";
+            vendorSha256 = "sha256-CzA99tijUdmi46x9hV8bKR9uVK1HivG/QpciXwpstlU=";
+            subPackages = [ "." ];
+            runVend = true;
+          };
+          kiwiirc_distributeStatic = final.webircgateway.overrideAttrs (oldAttrs: rec {
+            dontCheck = true;
+            dontTest = true;
+            dontFixup = true;
+            buildPhase = ''
+              export CGO_ENABLED=0
+              cp -r ${final.kiwiirc}/www www
+              chmod -R u+w www
+              GOOS=darwin GOARCH=amd64 go build -o $TMP/kiwiirc_darwin
+              GOOS=linux GOARCH=386 go build -o $TMP/kiwiirc_linux_386
+              GOOS=linux GOARCH=amd64 go build -o $TMP/kiwiirc_linux_amd64
+              GOOS=linux GOARCH=riscv64 go build -o $TMP/kiwiirc_linux_riscv64
+              GOOS=linux GOARCH=arm GOARM=5 go build -o $TMP/kiwiirc_linux_armel
+              GOOS=linux GOARCH=arm GOARM=6 go build -o $TMP/kiwiirc_linux_armhf
+              GOOS=linux GOARCH=arm64 go build -o $TMP/kiwiirc_linux_arm64
+              GOOS=windows GOARCH=386 go build -o $TMP/kiwiirc_windows_386
+              GOOS=windows GOARCH=amd64 go build -o $TMP/kiwiirc_windows_amd64
+            '';
+            installPhase = ''
+              mkdir -p $out
+              export binaryPaths=$(ls $TMP/kiwiirc*)
+              for i in $binaryPaths
+              do
+                export binaryName=$(echo $i | xargs -n 1 basename)
+                mkdir $binaryName
+                ln -s $i $binaryName/kiwiirc
+                ln -s $PWD/www $binaryName/www
+                ln -s $PWD/config.conf.example $binaryName/config.conf.example
+                ${final.zip}/bin/zip -r $out/${final.lib.substring 0 8 webircgateway.rev}-$binaryName.zip $binaryName
+              done
+            '';
+          });
       };
 
       packages = forAllSystems (system:
